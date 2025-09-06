@@ -68,4 +68,9 @@ Os dados são persistidos no volume mysql_data.
 A imagem está publicada no Docker Hub:
 👉 [https://hub.docker.com/r/victorburlina/php-mysql-app](https://hub.docker.com/repository/docker/victorburlina/php_apache/general)
 
+**Testar se está disponível**
+```bash
+docker pull victorburlina/php_apache:1.0
+docker run -it --rm victorburlina/php_apache:1.0
+
 
