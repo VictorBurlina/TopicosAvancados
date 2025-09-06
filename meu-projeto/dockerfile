@@ -1,0 +1,7 @@
+FROM php:8.1-apache
+
+# Instalar a extensão mysqli para PHP
+RUN docker-php-ext-install mysqli && docker-php-ext-enable mysqli
+
+# Copia os arquivos da aplicação
+COPY ./app/ /var/www/html/
