@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:11
+    container_name: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: app_db
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: app_pass
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - app-network
+
+  apachephp:
+    image: webdevops/php-apache:8.2
+    container_name: apachephp
+    restart: always
+    volumes:
+      - ./app:/app
+    environment:
+      - WEB_DOCUMENT_ROOT=/app
+    ports:
+      - "8080:80"
+    networks:
+      - app-network
+    depends_on:
+      - mariadb
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: mariadb
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "8081:80"
+    networks:
+      - app-network
+    depends_on:
+      - mariadb
+
+volumes:
+  db_data:
+
+networks:
+  app-network:
+    driver: bridge
