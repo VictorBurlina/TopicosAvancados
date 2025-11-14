@@ -1,0 +1,64 @@
+version: "3.8"
+
+services:
+
+  mariadb:
+    image: mariadb:11
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: app_db
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager   # opcional: banco só no manager
+      replicas: 1
+
+  apachephp:
+    image: victorburlina016/aula:2.0  # <<< SUA IMAGEM DO DOCKER HUB
+    environment:
+      WEB_DOCUMENT_ROOT: /app
+    volumes:
+      - app_data:/app   # EFS compartilhado
+    networks:
+      - app-network
+    deploy:
+      replicas: 5
+      restart_policy:
+        condition: on-failure
+      update_config:
+        parallelism: 1
+        order: start-first
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: mariadb
+      MYSQL_ROOT_PASSWORD: root
+    networks:
+      - app-network
+    deploy:
+      replicas: 2
+    ports:
+      - "8081:80"
+
+volumes:
+  app_data:
+    driver_opts:
+      type: "nfs"
+      o: "addr=<ID-EFS>.efs.<regiao>.amazonaws.com,rw"
+      device: ":/app"
+
+  db_data:
+    driver_opts:
+      type: "nfs"
+      o: "addr=<ID-EFS>.efs.<regiao>.amazonaws.com,rw"
+      device: ":/db"
+
+networks:
+  app-network:
+    driver: overlay
