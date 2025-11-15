@@ -1,14 +1,13 @@
 version: "3.8"
 
 services:
-
   mariadb:
     image: mariadb:11
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: app_db
     volumes:
-      - db_data:/var/lib/mysql
+      - /mnt/efs/db:/var/lib/mysql
       - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app-network
@@ -16,26 +15,20 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.role == manager   # Banco só roda no manager
+          - node.role == manager
 
   apachephp:
-    image: victorburlina016/aula:2.0
+    image: victorburlina016/aula:latest
     environment:
       WEB_DOCUMENT_ROOT: /app
     volumes:
-      - app_data:/app   # EFS compartilhado
+      - /mnt/efs/app:/app
     networks:
       - app-network
     deploy:
       replicas: 5
-      placement:
-        constraints:
-          - node.role == manager   # Somente managers rodam o apache se quiser garantir acesso ao EFS
       restart_policy:
         condition: on-failure
-      update_config:
-        parallelism: 1
-        order: start-first
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -66,3 +59,4 @@ volumes:
 networks:
   app-network:
     driver: overlay
+
